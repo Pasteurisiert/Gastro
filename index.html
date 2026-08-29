@@ -155,19 +155,19 @@
   <main>
     <div id="list-container">
       <div id="location-display" class="current-location-info">Standort wird gesetzt...</div>
-      <div id="status" class="status-msg"><div class="spinner"></div>Lade vollständige POI-Daten...</div>
+      <div id="status" class="status-msg"><div class="spinner"></div>Lade POI-Daten...</div>
       <div id="places-list"></div>
     </div>
     <div id="map-container"></div>
   </main>
 
   <script>
-    // Hochverfügbare Overpass Server
+    // Ausschließlich westeuropäische Endpunkte
     const OVERPASS_ENDPOINTS = [
-      'https://overpass.kumi.systems/api/interpreter',
       'https://overpass-api.de/api/interpreter',
-      'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
-      'https://overpass.openstreetmap.fr/api/interpreter'
+      'https://lz4.overpass-api.de/api/interpreter',
+      'https://overpass.openstreetmap.fr/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter'
     ];
 
     let userLat = 47.4439;
@@ -192,7 +192,6 @@
     const toggleViewBtn = document.getElementById('toggle-view-btn');
     const mapContainer = document.getElementById('map-container');
 
-    // Präzise OSM-Tags für vollständige Ergebnisse
     const CATEGORY_QUERIES = {
       gastro: (s, w, n, o) => `
         nwr["amenity"~"restaurant|cafe|fast_food|bar|pub|bistro|ice_cream|biergarten"](${s},${w},${n},${o});
@@ -249,7 +248,6 @@
       return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
-    // Bounding Box um Koordinaten berechnen (beschleunigt Overpass drastisch)
     function getBoundingBox(lat, lon, radiusMeters) {
       const latDelta = (radiusMeters / 6371000) * (180 / Math.PI);
       const lonDelta = (radiusMeters / (6371000 * Math.cos(lat * Math.PI / 180))) * (180 / Math.PI);
@@ -295,14 +293,13 @@
       }
     }
 
-    // Vollständige Overpass-Abfrage mit BBOX
     async function fetchPlaces() {
       updateLocationText();
       const radius = getSelectedRadius();
       const catKey = categorySelect.value;
       const bbox = getBoundingBox(userLat, userLon, radius);
 
-      statusMsg.innerHTML = '<div class="spinner"></div>Lade alle POIs im Umkreis...';
+      statusMsg.innerHTML = '<div class="spinner"></div>Lade POI-Daten...';
       placesList.innerHTML = '';
 
       const queryContent = CATEGORY_QUERIES[catKey](bbox.south, bbox.west, bbox.north, bbox.east);
@@ -310,7 +307,6 @@
 
       let elements = null;
 
-      // Server-Kette durchlaufen
       for (const endpoint of OVERPASS_ENDPOINTS) {
         try {
           const controller = new AbortController();
@@ -332,12 +328,12 @@
             }
           }
         } catch (e) {
-          console.warn(`Server ${endpoint} nicht erreichbar, wechsle...`);
+          console.warn(`Server ${endpoint} antwortet nicht, teste nächsten...`);
         }
       }
 
       if (!elements) {
-        statusMsg.innerHTML = 'Konnte keine Verbindung aufbauen. Bitte kurz warten und erneut versuchen.';
+        statusMsg.innerHTML = 'Aktuell konnte kein Server erreicht werden. Bitte in wenigen Sekunden erneut probieren.';
         return;
       }
 
@@ -350,12 +346,11 @@
         if (!lat || !lon) return null;
 
         const dist = calculateDistance(userLat, userLon, lat, lon);
-        if (dist > radius) return null; // Exakter Kreis-Filter
+        if (dist > radius) return null;
 
         const tags = el.tags || {};
         const name = tags.name || (tags.ref ? `Linie / Ref: ${tags.ref}` : (tags.operator || 'Eintrag ohne Namen'));
         
-        // Eindeutigkeit prüfen
         const key = `${name}-${lat.toFixed(4)}-${lon.toFixed(4)}`;
         if (seen.has(key)) return null;
         seen.add(key);
@@ -407,7 +402,7 @@
           <div class="distance">${p.distance} m ↗</div>
         `;
         card.onclick = () => {
-          window.open(`https://maps.google.com/?q=${p.lat},${p.lon}`, '_blank');
+          window.open(`http://googleusercontent.com/maps.google.com/4{p.lat},${p.lon}`, '_blank');
         };
         placesList.appendChild(card);
       });
@@ -436,7 +431,7 @@
       markersLayer.clearLayers();
 
       userMarker = L.marker([userLat, userLon], { draggable: true })
-        .bindPopup('<b>Aktiver Mittelpunkt</b><br>(Verschieben um Bereich zu ändern)')
+        .bindPopup('<b>Aktiver Mittelpunkt</b><br>(Ziehen um Ort zu ändern)')
         .addTo(markersLayer);
 
       userMarker.on('dragend', (e) => {
@@ -454,7 +449,7 @@
             <b>${p.name}</b><br>
             <span style="color: #64748b;">${p.type} ${p.price ? '• ' + p.price : ''} • ★ ${p.rating}</span><br>
             ${p.address ? `<small>${p.address}</small><br>` : ''}<br>
-            <a href="https://maps.google.com/?q=${p.lat},${p.lon}" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none;">
+            <a href="http://googleusercontent.com/maps.google.com/4{p.lat},${p.lon}" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none;">
               🚗 Navigation (${p.distance}m)
             </a>
           </div>
@@ -463,7 +458,6 @@
       });
     }
 
-    // Event Listener
     btnSearchAddr.onclick = () => searchAddress(addressInput.value);
     addressInput.onkeydown = (e) => { if (e.key === 'Enter') searchAddress(addressInput.value); };
 
