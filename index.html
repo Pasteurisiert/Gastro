@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>POI & Gastro Finder</title>
+  <title>POI & Gastro Finder (Keyless)</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -225,13 +225,13 @@
       <div class="control-group">
         <label for="poi-category">Kategorie:</label>
         <select id="poi-category">
-          <option value="catering" selected>🍽️ Essen & Trinken</option>
-          <option value="healthcare">💊 Ärzte & Apotheken</option>
-          <option value="public_transport">🚆 ÖV / Haltestellen</option>
-          <option value="entertainment.museum,entertainment.culture">🏛️ Museen & Kunst</option>
-          <option value="entertainment.culture.theatre">🎭 Theater & Oper</option>
-          <option value="commercial.supermarket,commercial.shopping_mall">🛒 Einkaufen</option>
-          <option value="leisure,entertainment">🌳 Freizeit</option>
+          <option value="gastro" selected>🍽️ Essen & Trinken</option>
+          <option value="health">💊 Ärzte & Apotheken</option>
+          <option value="transit">🚆 ÖV / Haltestellen</option>
+          <option value="culture">🏛️ Museen & Kunst</option>
+          <option value="theater">🎭 Theater & Oper</option>
+          <option value="shopping">🛒 Einkaufen</option>
+          <option value="leisure">🌳 Freizeit & Tourismus</option>
         </select>
       </div>
 
@@ -240,19 +240,20 @@
         <select id="radius-select">
           <option value="100">100 m</option>
           <option value="200">200 m</option>
-          <option value="500" selected>500 m</option>
-          <option value="1000">1 km</option>
+          <option value="500">500 m</option>
+          <option value="1000" selected>1 km</option>
           <option value="2000">2 km</option>
+          <option value="5000">5 km</option>
           <option value="custom">Frei...</option>
         </select>
-        <input type="number" id="custom-radius" style="width: 80px; display: none;" placeholder="Meter" min="50" max="50000" step="50" value="750">
+        <input type="number" id="custom-radius" style="width: 80px; display: none;" placeholder="Meter" min="50" max="50000" step="100" value="1500">
       </div>
     </div>
   </header>
 
   <main>
     <div id="list-container">
-      <div id="location-display" class="current-location-info">Standort wird gesetzt...</div>
+      <div id="location-display" class="current-location-info">Standort wird initialisiert...</div>
       <div id="status" class="status-msg"><div class="spinner"></div>Lade Daten...</div>
       <div id="places-list"></div>
     </div>
@@ -260,11 +261,6 @@
   </main>
 
   <script>
-    // -------------------------------------------------------------------------
-    // HIER BITTE DEINEN GEOAPIFY API-KEY EINTRAGEN
-    // -------------------------------------------------------------------------
-    const GEOAPIFY_API_KEY = 'DEIN_GEOAPIFY_API_KEY';
-
     // Start-Koordinaten (Standard: Fislisbach/Baden)
     let userLat = 47.4439;
     let userLon = 8.2933;
@@ -288,24 +284,75 @@
     const toggleViewBtn = document.getElementById('toggle-view-btn');
     const mapContainer = document.getElementById('map-container');
 
+    // Kategorien-Konfiguration für Photon-Suche
+    const CATEGORIES = {
+      gastro: {
+        keywords: ['restaurant', 'cafe', 'bar', 'bistro', 'pub', 'pizza', 'bakery', 'imbiss', 'food'],
+        validValues: ['restaurant', 'cafe', 'bar', 'pub', 'fast_food', 'bistro', 'ice_cream'],
+        showPrice: true
+      },
+      health: {
+        keywords: ['arzt', 'apotheke', 'pharmacy', 'doctor', 'hospital', 'zahnarzt', 'spital', 'klinik'],
+        validValues: ['doctors', 'pharmacy', 'hospital', 'clinic', 'dentist'],
+        showPrice: false
+      },
+      transit: {
+        keywords: ['bahnhof', 'station', 'bus', 'tram', 'haltestelle'],
+        validValues: ['station', 'bus_stop', 'tram_stop', 'halt', 'subway_entrance'],
+        showPrice: false
+      },
+      culture: {
+        keywords: ['museum', 'galerie', 'kunst', 'exhibition', 'gallery'],
+        validValues: ['museum', 'gallery', 'arts_centre', 'artwork'],
+        showPrice: false
+      },
+      theater: {
+        keywords: ['theater', 'theatre', 'oper', 'opera', 'bühne'],
+        validValues: ['theatre'],
+        showPrice: false
+      },
+      shopping: {
+        keywords: ['supermarket', 'migros', 'coop', 'aldi', 'denner', 'einkaufen', 'mall'],
+        validValues: ['supermarket', 'convenience', 'mall', 'department_store'],
+        showPrice: true
+      },
+      leisure: {
+        keywords: ['park', 'kino', 'cinema', 'attraktion', 'viewpoint'],
+        validValues: ['park', 'cinema', 'attraction', 'viewpoint'],
+        showPrice: false
+      }
+    };
+
     function hashString(str) {
       let hash = 0;
       for (let i = 0; i < str.length; i++) hash = (hash << 5) - hash + str.charCodeAt(i);
       return Math.abs(hash);
     }
 
-    function getPlaceMetadata(name, category) {
-      const h = hashString(name + category);
+    function getPlaceMetadata(name, catKey) {
+      const h = hashString(name + catKey);
       const rating = (3.8 + (h % 12) / 10).toFixed(1);
       const reviews = 5 + (h % 180);
       const priceLevels = ['$', '$$', '$$$', '$$$$'];
-      const price = category.includes('catering') || category.includes('commercial') ? priceLevels[h % priceLevels.length] : null;
+      const price = CATEGORIES[catKey].showPrice ? priceLevels[h % priceLevels.length] : null;
       return { rating, reviews, price };
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
     function getSelectedRadius() {
       if (radiusSelect.value === 'custom') {
-        return parseInt(customRadiusInput.value, 10) || 500;
+        return parseInt(customRadiusInput.value, 10) || 1000;
       }
       return parseInt(radiusSelect.value, 10);
     }
@@ -314,19 +361,20 @@
       locationDisplay.innerText = `📍 Aktiver Mittelpunkt: ${locationLabel} (${userLat.toFixed(4)}, ${userLon.toFixed(4)})`;
     }
 
-    // Ort per Texteingabe (Geocoding via freie OSM Nominatim API)
+    // Geocoding Suche für Textfeld
     async function searchAddress(query) {
       if (!query.trim()) return;
       statusMsg.innerHTML = '<div class="spinner"></div>Suche Ort...';
       placesList.innerHTML = '';
 
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+        const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`);
         const data = await res.json();
-        if (data && data.length > 0) {
-          userLat = parseFloat(data[0].lat);
-          userLon = parseFloat(data[0].lon);
-          locationLabel = data[0].display_name.split(',')[0];
+        if (data && data.features && data.features.length > 0) {
+          const coords = data.features[0].geometry.coordinates;
+          userLon = coords[0];
+          userLat = coords[1];
+          locationLabel = data.features[0].properties.name || query;
           updateLocationText();
           if (map) map.setView([userLat, userLon], 15);
           fetchPlaces();
@@ -338,62 +386,72 @@
       }
     }
 
-    // POIs von Geoapify laden
+    // Robuste, schlüssellose POI-Abfrage via Photon API
     async function fetchPlaces() {
       updateLocationText();
-
-      if (!GEOAPIFY_API_KEY || GEOAPIFY_API_KEY === '73822b3df6664b7b9369a21411ba7515') {
-        statusMsg.innerHTML = `
-          <div style="background: #fee2e2; border: 1px solid #ef4444; padding: 1rem; border-radius: 8px; color: #991b1b; text-align: left; max-width: 500px; margin: 0 auto;">
-            <b>⚠️ Geoapify API-Key fehlt</b><br><br>
-            Trage bitte in Zeile 184 deinen Key ein:<br>
-            <code>const GEOAPIFY_API_KEY = '73822b3df6664b7b9369a21411ba7515';</code>
-          </div>`;
-        return;
-      }
-
       const radius = getSelectedRadius();
-      const categories = categorySelect.value;
+      const catKey = categorySelect.value;
+      const catConfig = CATEGORIES[catKey];
 
       statusMsg.innerHTML = '<div class="spinner"></div>Lade POIs im Umkreis...';
       placesList.innerHTML = '';
 
-      const url = `https://api.geoapify.com/v2/places?categories=${categories}&filter=circle:${userLon},${userLat},${radius}&bias=proximity:${userLon},${userLat}&limit=60&apiKey=${GEOAPIFY_API_KEY}`;
-
       try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
+        // Photon API Abfragen mit Schlagwörtern ausführen
+        const requests = catConfig.keywords.map(kw =>
+          fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(kw)}&lat=${userLat}&lon=${userLon}&limit=40`)
+            .then(res => res.json())
+            .catch(() => ({ features: [] }))
+        );
 
-        currentPlaces = (data.features || []).map(item => {
-          const props = item.properties;
-          const name = props.name || props.address_line1 || 'Unbenannter Ort';
-          const address = props.address_line2 || props.street || '';
-          const primaryCat = (props.categories && props.categories[0]) ? props.categories[0].split('.').pop() : 'Ort';
-          const meta = getPlaceMetadata(name, categories);
+        const responses = await Promise.all(requests);
+        const seenIds = new Set();
+        const rawPlaces = [];
 
-          return {
-            id: props.place_id || Math.random(),
-            name: name,
-            address: address,
-            category: primaryCat.replace('_', ' '),
-            lat: props.lat,
-            lon: props.lon,
-            distance: props.distance || 0,
-            ...meta
-          };
-        }).sort((a, b) => a.distance - b.distance);
+        responses.forEach(data => {
+          (data.features || []).forEach(f => {
+            const props = f.properties || {};
+            const coords = f.geometry.coordinates;
+            const pLon = coords[0];
+            const pLat = coords[1];
+            const dist = calculateDistance(userLat, userLon, pLat, pLon);
 
+            // Nur Ergebnisse innerhalb des gewählten Radius
+            if (dist <= radius) {
+              const id = props.osm_id || `${pLat}-${pLon}`;
+              if (!seenIds.has(id) && props.name) {
+                seenIds.add(id);
+                const type = props.osm_value || props.type || 'Ort';
+                const street = props.street ? `${props.street} ${props.housenumber || ''}`.trim() : (props.city || '');
+                const meta = getPlaceMetadata(props.name, catKey);
+
+                rawPlaces.push({
+                  id,
+                  name: props.name,
+                  address: street,
+                  category: type.replace('_', ' '),
+                  lat: pLat,
+                  lon: pLon,
+                  distance: dist,
+                  ...meta
+                });
+              }
+            }
+          });
+        });
+
+        currentPlaces = rawPlaces.sort((a, b) => a.distance - b.distance);
         renderList();
         updateMapMarkers();
       } catch (err) {
-        statusMsg.innerHTML = 'Fehler beim Laden der Orte. Bitte API-Key prüfen.';
+        console.error(err);
+        statusMsg.innerHTML = 'Fehler beim Laden der Orte.';
       }
     }
 
     function renderList() {
       if (currentPlaces.length === 0) {
-        statusMsg.innerText = 'Keine Einträge in dieser Kategorie im gewählten Umkreis gefunden.';
+        statusMsg.innerText = 'Keine Einträge in dieser Kategorie im gewählten Umkreis gefunden. Versuche den Radius zu vergrößern.';
         return;
       }
       statusMsg.innerText = '';
@@ -415,7 +473,7 @@
           <div class="distance">${p.distance} m ↗</div>
         `;
         card.onclick = () => {
-          window.open(`https://www.google.com/maps/dir/?api=1&destination=$${p.lat},${p.lon}`, '_blank');
+          window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}`, '_blank');
         };
         placesList.appendChild(card);
       });
@@ -446,13 +504,13 @@
 
       // Verschiebbare Standort-Markierung
       userMarker = L.marker([userLat, userLon], { draggable: true })
-        .bindPopup('<b>Aktiver Mittelpunkt</b><br>(Verschieben um Bereich zu ändern)')
+        .bindPopup('<b>Aktiver Mittelpunkt</b><br>(Ziehen um Ort zu ändern)')
         .addTo(markersLayer);
 
       userMarker.on('dragend', (e) => {
         const pos = e.target.getLatLng();
         userLat = pos.lat;
-        userLon = pos.lon || pos.lng;
+        userLon = pos.lng;
         locationLabel = "Verschobener Punkt";
         fetchPlaces();
       });
@@ -465,7 +523,7 @@
             <b>${p.name}</b><br>
             <span style="color: #64748b;">${p.category} ${p.price ? '• ' + p.price : ''} • ★ ${p.rating}</span><br>
             <small>${p.address}</small><br><br>
-            <a href="https://www.google.com/maps/dir/?api=1&destination=$${p.lat},${p.lon}" target="_blank" style="color: #2563eb; font-weight: bold;">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none;">
               🚗 Navigation (${p.distance}m)
             </a>
           </div>
@@ -474,7 +532,7 @@
       });
     }
 
-    // Event Listener
+    // Event-Listener
     btnSearchAddr.onclick = () => searchAddress(addressInput.value);
     addressInput.onkeydown = (e) => { if (e.key === 'Enter') searchAddress(addressInput.value); };
 
@@ -491,7 +549,7 @@
             fetchPlaces();
           },
           (err) => {
-            alert('GPS-Zugriff wurde vom Browser blockiert. Bitte nutze die manuelle Ortssuche im Textfeld.');
+            alert('GPS-Zugriff nicht verfügbar oder blockiert. Bitte Ort im Textfeld eingeben.');
             fetchPlaces();
           },
           { enableHighAccuracy: true, timeout: 5000 }
@@ -525,7 +583,7 @@
     };
     customRadiusInput.onchange = fetchPlaces;
 
-    // Start mit Standardadresse (Fislisbach)
+    // Start beim Laden
     window.onload = () => {
       fetchPlaces();
     };
