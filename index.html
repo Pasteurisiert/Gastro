@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Präziser POI Finder</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -20,23 +20,72 @@
       --star: #f59e0b;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
 
+    /* Das Browserfenster selbst darf nicht scrollen */
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* FIXIERTER STICKY HEADER FÜR KARTE & LISTE */
     header {
+      position: sticky;
+      top: 0;
+      left: 0;
+      width: 100%;
+      flex-shrink: 0; /* Verhindert Stauchen des Headers */
       background: var(--card-bg);
       border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
       padding: 0.75rem 1rem;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      z-index: 1000;
+      z-index: 1200; /* Stets über Karte und Liste */
     }
 
-    .header-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
-    .controls-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
-    .control-group { display: flex; align-items: center; gap: 0.35rem; }
-    label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+    .header-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .controls-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
 
     select, input, button {
       padding: 0.45rem 0.65rem;
@@ -47,28 +96,87 @@
       outline: none;
     }
 
-    select:focus, input:focus { border-color: var(--primary); }
-    .input-address { min-width: 170px; }
+    select:focus, input:focus {
+      border-color: var(--primary);
+    }
 
-    .btn { font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.3rem; transition: all 0.2s; }
-    .btn-primary { background: var(--primary); color: #fff; border: none; }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
-    .btn-secondary:hover { background: #e2e8f0; }
+    .input-address {
+      min-width: 170px;
+    }
 
-    main { flex: 1; display: flex; position: relative; overflow: hidden; }
-    #list-container { flex: 1; overflow-y: auto; padding: 1rem; max-width: 850px; margin: 0 auto; width: 100%; }
-    #map-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 500; display: none; }
+    .btn {
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    /* HAUPTBEREICH */
+    main {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* SCROLLBARE LISTENANSICHT */
+    #list-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 1rem;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    /* KARTENANSICHT UNTERHALB DES HEADERS */
+    #map-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 500;
+      display: none;
+    }
 
     .current-location-info {
       font-size: 0.8rem;
       color: var(--primary);
       font-weight: 600;
-      padding: 0.3rem 0.5rem;
+      padding: 0.35rem 0.6rem;
       background: #eff6ff;
-      border-radius: 4px;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
       display: inline-block;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
     }
 
     .place-card {
@@ -76,7 +184,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 0.85rem 1rem;
-      margin-bottom: 0.6rem;
+      margin-bottom: 0.65rem;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
@@ -84,26 +192,78 @@
       transition: transform 0.1s ease, box-shadow 0.1s ease;
     }
 
-    .place-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); border-color: var(--primary); }
-    .place-info h3 { font-size: 0.95rem; color: var(--primary); margin-bottom: 0.2rem; }
-    .place-address { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem; }
-    .place-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; font-size: 0.78rem; color: var(--text-muted); }
-    .tag-badge { background: var(--bg); border: 1px solid var(--border); padding: 0.1rem 0.35rem; border-radius: 4px; text-transform: capitalize; }
-    .stars { color: var(--star); font-weight: 600; }
-    .price { color: #16a34a; font-weight: 600; }
-    .distance { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; margin-left: 0.5rem; }
+    .place-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      border-color: var(--primary);
+    }
 
-    .status-msg { text-align: center; padding: 2rem; color: var(--text-muted); }
+    .place-info h3 {
+      font-size: 0.95rem;
+      color: var(--primary);
+      margin-bottom: 0.2rem;
+    }
+
+    .place-address {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .place-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .tag-badge {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      text-transform: capitalize;
+    }
+
+    .stars {
+      color: var(--star);
+      font-weight: 600;
+    }
+
+    .price {
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .distance {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      margin-left: 0.5rem;
+    }
+
+    .status-msg {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text-muted);
+    }
+
     .spinner {
       border: 3px solid #f3f3f3;
       border-top: 3px solid var(--primary);
       border-radius: 50%;
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       animation: spin 1s linear infinite;
       margin: 1rem auto;
     }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -121,7 +281,7 @@
         <button id="btn-search-addr" class="btn btn-secondary">Suchen</button>
       </div>
 
-      <button id="btn-gps" class="btn btn-secondary" title="GPS-Standort nutzen">📡 GPS</button>
+      <button id="btn-gps" class="btn btn-secondary" title="GPS-Standort abfragen">📡 GPS</button>
 
       <div class="control-group">
         <label for="poi-category">Kategorie:</label>
@@ -402,7 +562,7 @@
           <div class="distance">${p.distance} m ↗</div>
         `;
         card.onclick = () => {
-          window.open(`http://googleusercontent.com/maps.google.com/4{p.lat},${p.lon}`, '_blank');
+          window.open(`https://maps.google.com/?q=${p.lat},${p.lon}`, '_blank');
         };
         placesList.appendChild(card);
       });
@@ -431,7 +591,7 @@
       markersLayer.clearLayers();
 
       userMarker = L.marker([userLat, userLon], { draggable: true })
-        .bindPopup('<b>Aktiver Mittelpunkt</b><br>(Ziehen um Ort zu ändern)')
+        .bindPopup('<b>Aktiver Mittelpunkt</b><br>(Verschieben um Bereich zu ändern)')
         .addTo(markersLayer);
 
       userMarker.on('dragend', (e) => {
@@ -449,7 +609,7 @@
             <b>${p.name}</b><br>
             <span style="color: #64748b;">${p.type} ${p.price ? '• ' + p.price : ''} • ★ ${p.rating}</span><br>
             ${p.address ? `<small>${p.address}</small><br>` : ''}<br>
-            <a href="http://googleusercontent.com/maps.google.com/4{p.lat},${p.lon}" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none;">
+            <a href="https://maps.google.com/?q=${p.lat},${p.lon}" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none;">
               🚗 Navigation (${p.distance}m)
             </a>
           </div>
