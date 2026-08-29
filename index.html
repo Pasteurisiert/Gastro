@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>POI & Gastro Finder (Keyless)</title>
+  <title>Präziser POI Finder</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -20,21 +20,8 @@
       --star: #f59e0b;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
     header {
       background: var(--card-bg);
@@ -46,32 +33,10 @@
       z-index: 1000;
     }
 
-    .header-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-    }
-
-    .controls-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    .control-group {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    label {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
+    .header-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .controls-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .control-group { display: flex; align-items: center; gap: 0.35rem; }
+    label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
 
     select, input, button {
       padding: 0.45rem 0.65rem;
@@ -82,53 +47,18 @@
       outline: none;
     }
 
-    select:focus, input:focus {
-      border-color: var(--primary);
-    }
+    select:focus, input:focus { border-color: var(--primary); }
+    .input-address { min-width: 170px; }
 
-    .input-address {
-      min-width: 170px;
-    }
-
-    .btn {
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      transition: all 0.2s;
-    }
-
+    .btn { font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.3rem; transition: all 0.2s; }
     .btn-primary { background: var(--primary); color: #fff; border: none; }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { background: #e2e8f0; }
 
-    main {
-      flex: 1;
-      display: flex;
-      position: relative;
-      overflow: hidden;
-    }
-
-    #list-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-      max-width: 850px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    #map-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 500;
-      display: none;
-    }
+    main { flex: 1; display: flex; position: relative; overflow: hidden; }
+    #list-container { flex: 1; overflow-y: auto; padding: 1rem; max-width: 850px; margin: 0 auto; width: 100%; }
+    #map-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 500; display: none; }
 
     .current-location-info {
       font-size: 0.8rem;
@@ -154,43 +84,14 @@
       transition: transform 0.1s ease, box-shadow 0.1s ease;
     }
 
-    .place-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-      border-color: var(--primary);
-    }
-
-    .place-info h3 {
-      font-size: 0.95rem;
-      color: var(--primary);
-      margin-bottom: 0.2rem;
-    }
-
-    .place-address {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 0.25rem;
-    }
-
-    .place-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .tag-badge {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      padding: 0.1rem 0.35rem;
-      border-radius: 4px;
-      text-transform: capitalize;
-    }
-
+    .place-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); border-color: var(--primary); }
+    .place-info h3 { font-size: 0.95rem; color: var(--primary); margin-bottom: 0.2rem; }
+    .place-address { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+    .place-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; font-size: 0.78rem; color: var(--text-muted); }
+    .tag-badge { background: var(--bg); border: 1px solid var(--border); padding: 0.1rem 0.35rem; border-radius: 4px; text-transform: capitalize; }
     .stars { color: var(--star); font-weight: 600; }
     .price { color: #16a34a; font-weight: 600; }
-    .distance { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; margin-left: 0.5rem;}
+    .distance { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; margin-left: 0.5rem; }
 
     .status-msg { text-align: center; padding: 2rem; color: var(--text-muted); }
     .spinner {
@@ -230,7 +131,7 @@
           <option value="transit">🚆 ÖV / Haltestellen</option>
           <option value="culture">🏛️ Museen & Kunst</option>
           <option value="theater">🎭 Theater & Oper</option>
-          <option value="shopping">🛒 Einkaufen</option>
+          <option value="shopping">🛒 Supermärkte & Bäckereien</option>
           <option value="leisure">🌳 Freizeit & Tourismus</option>
         </select>
       </div>
@@ -240,31 +141,38 @@
         <select id="radius-select">
           <option value="100">100 m</option>
           <option value="200">200 m</option>
-          <option value="500">500 m</option>
-          <option value="1000" selected>1 km</option>
+          <option value="500" selected>500 m</option>
+          <option value="1000">1 km</option>
           <option value="2000">2 km</option>
           <option value="5000">5 km</option>
           <option value="custom">Frei...</option>
         </select>
-        <input type="number" id="custom-radius" style="width: 80px; display: none;" placeholder="Meter" min="50" max="50000" step="100" value="1500">
+        <input type="number" id="custom-radius" style="width: 80px; display: none;" placeholder="Meter" min="50" max="20000" step="100" value="1500">
       </div>
     </div>
   </header>
 
   <main>
     <div id="list-container">
-      <div id="location-display" class="current-location-info">Standort wird initialisiert...</div>
-      <div id="status" class="status-msg"><div class="spinner"></div>Lade Daten...</div>
+      <div id="location-display" class="current-location-info">Standort wird gesetzt...</div>
+      <div id="status" class="status-msg"><div class="spinner"></div>Lade vollständige POI-Daten...</div>
       <div id="places-list"></div>
     </div>
     <div id="map-container"></div>
   </main>
 
   <script>
-    // Start-Koordinaten (Standard: Fislisbach/Baden)
+    // Hochverfügbare Overpass Server
+    const OVERPASS_ENDPOINTS = [
+      'https://overpass.kumi.systems/api/interpreter',
+      'https://overpass-api.de/api/interpreter',
+      'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+      'https://overpass.openstreetmap.fr/api/interpreter'
+    ];
+
     let userLat = 47.4439;
     let userLon = 8.2933;
-    let locationLabel = "Fislisbach (Standard)";
+    let locationLabel = "Fislisbach";
 
     let map = null;
     let markersLayer = null;
@@ -284,43 +192,34 @@
     const toggleViewBtn = document.getElementById('toggle-view-btn');
     const mapContainer = document.getElementById('map-container');
 
-    // Kategorien-Konfiguration für Photon-Suche
-    const CATEGORIES = {
-      gastro: {
-        keywords: ['restaurant', 'cafe', 'bar', 'bistro', 'pub', 'pizza', 'bakery', 'imbiss', 'food'],
-        validValues: ['restaurant', 'cafe', 'bar', 'pub', 'fast_food', 'bistro', 'ice_cream'],
-        showPrice: true
-      },
-      health: {
-        keywords: ['arzt', 'apotheke', 'pharmacy', 'doctor', 'hospital', 'zahnarzt', 'spital', 'klinik'],
-        validValues: ['doctors', 'pharmacy', 'hospital', 'clinic', 'dentist'],
-        showPrice: false
-      },
-      transit: {
-        keywords: ['bahnhof', 'station', 'bus', 'tram', 'haltestelle'],
-        validValues: ['station', 'bus_stop', 'tram_stop', 'halt', 'subway_entrance'],
-        showPrice: false
-      },
-      culture: {
-        keywords: ['museum', 'galerie', 'kunst', 'exhibition', 'gallery'],
-        validValues: ['museum', 'gallery', 'arts_centre', 'artwork'],
-        showPrice: false
-      },
-      theater: {
-        keywords: ['theater', 'theatre', 'oper', 'opera', 'bühne'],
-        validValues: ['theatre'],
-        showPrice: false
-      },
-      shopping: {
-        keywords: ['supermarket', 'migros', 'coop', 'aldi', 'denner', 'einkaufen', 'mall'],
-        validValues: ['supermarket', 'convenience', 'mall', 'department_store'],
-        showPrice: true
-      },
-      leisure: {
-        keywords: ['park', 'kino', 'cinema', 'attraktion', 'viewpoint'],
-        validValues: ['park', 'cinema', 'attraction', 'viewpoint'],
-        showPrice: false
-      }
+    // Präzise OSM-Tags für vollständige Ergebnisse
+    const CATEGORY_QUERIES = {
+      gastro: (s, w, n, o) => `
+        nwr["amenity"~"restaurant|cafe|fast_food|bar|pub|bistro|ice_cream|biergarten"](${s},${w},${n},${o});
+      `,
+      health: (s, w, n, o) => `
+        nwr["amenity"~"doctors|pharmacy|hospital|clinic|dentist"](${s},${w},${n},${o});
+        nwr["healthcare"~"doctor|pharmacy|hospital|clinic|dentist|centre"](${s},${w},${n},${o});
+      `,
+      transit: (s, w, n, o) => `
+        node["highway"="bus_stop"](${s},${w},${n},${o});
+        node["railway"~"station|halt|tram_stop|subway_entrance"](${s},${w},${n},${o});
+        nwr["amenity"="bus_station"](${s},${w},${n},${o});
+      `,
+      culture: (s, w, n, o) => `
+        nwr["tourism"~"museum|gallery|artwork"](${s},${w},${n},${o});
+        nwr["amenity"="arts_centre"](${s},${w},${n},${o});
+      `,
+      theater: (s, w, n, o) => `
+        nwr["amenity"="theatre"](${s},${w},${n},${o});
+      `,
+      shopping: (s, w, n, o) => `
+        nwr["shop"~"supermarket|convenience|bakery|mall|department_store|butcher"](${s},${w},${n},${o});
+      `,
+      leisure: (s, w, n, o) => `
+        nwr["tourism"~"attraction|viewpoint|theme_park"](${s},${w},${n},${o});
+        nwr["leisure"~"park|cinema|garden"](${s},${w},${n},${o});
+      `
     };
 
     function hashString(str) {
@@ -329,12 +228,12 @@
       return Math.abs(hash);
     }
 
-    function getPlaceMetadata(name, catKey) {
-      const h = hashString(name + catKey);
-      const rating = (3.8 + (h % 12) / 10).toFixed(1);
-      const reviews = 5 + (h % 180);
+    function getPlaceMetadata(name, type, isGastro) {
+      const h = hashString(name + type);
+      const rating = (3.9 + (h % 11) / 10).toFixed(1);
+      const reviews = 6 + (h % 190);
       const priceLevels = ['$', '$$', '$$$', '$$$$'];
-      const price = CATEGORIES[catKey].showPrice ? priceLevels[h % priceLevels.length] : null;
+      const price = isGastro ? priceLevels[h % priceLevels.length] : null;
       return { rating, reviews, price };
     }
 
@@ -350,108 +249,142 @@
       return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
+    // Bounding Box um Koordinaten berechnen (beschleunigt Overpass drastisch)
+    function getBoundingBox(lat, lon, radiusMeters) {
+      const latDelta = (radiusMeters / 6371000) * (180 / Math.PI);
+      const lonDelta = (radiusMeters / (6371000 * Math.cos(lat * Math.PI / 180))) * (180 / Math.PI);
+      return {
+        south: (lat - latDelta).toFixed(6),
+        west: (lon - lonDelta).toFixed(6),
+        north: (lat + latDelta).toFixed(6),
+        east: (lon + lonDelta).toFixed(6)
+      };
+    }
+
     function getSelectedRadius() {
       if (radiusSelect.value === 'custom') {
-        return parseInt(customRadiusInput.value, 10) || 1000;
+        return parseInt(customRadiusInput.value, 10) || 500;
       }
       return parseInt(radiusSelect.value, 10);
     }
 
     function updateLocationText() {
-      locationDisplay.innerText = `📍 Aktiver Mittelpunkt: ${locationLabel} (${userLat.toFixed(4)}, ${userLon.toFixed(4)})`;
+      locationDisplay.innerText = `📍 Mittelpunkt: ${locationLabel} (${userLat.toFixed(4)}, ${userLon.toFixed(4)})`;
     }
 
-    // Geocoding Suche für Textfeld
     async function searchAddress(query) {
       if (!query.trim()) return;
       statusMsg.innerHTML = '<div class="spinner"></div>Suche Ort...';
       placesList.innerHTML = '';
 
       try {
-        const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
         const data = await res.json();
-        if (data && data.features && data.features.length > 0) {
-          const coords = data.features[0].geometry.coordinates;
-          userLon = coords[0];
-          userLat = coords[1];
-          locationLabel = data.features[0].properties.name || query;
+        if (data && data.length > 0) {
+          userLat = parseFloat(data[0].lat);
+          userLon = parseFloat(data[0].lon);
+          locationLabel = data[0].display_name.split(',')[0];
           updateLocationText();
           if (map) map.setView([userLat, userLon], 15);
           fetchPlaces();
         } else {
-          statusMsg.innerText = 'Ort nicht gefunden. Bitte Suchbegriff präzisieren.';
+          statusMsg.innerText = 'Ort nicht gefunden.';
         }
       } catch (err) {
         statusMsg.innerText = 'Fehler bei der Ortssuche.';
       }
     }
 
-    // Robuste, schlüssellose POI-Abfrage via Photon API
+    // Vollständige Overpass-Abfrage mit BBOX
     async function fetchPlaces() {
       updateLocationText();
       const radius = getSelectedRadius();
       const catKey = categorySelect.value;
-      const catConfig = CATEGORIES[catKey];
+      const bbox = getBoundingBox(userLat, userLon, radius);
 
-      statusMsg.innerHTML = '<div class="spinner"></div>Lade POIs im Umkreis...';
+      statusMsg.innerHTML = '<div class="spinner"></div>Lade alle POIs im Umkreis...';
       placesList.innerHTML = '';
 
-      try {
-        // Photon API Abfragen mit Schlagwörtern ausführen
-        const requests = catConfig.keywords.map(kw =>
-          fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(kw)}&lat=${userLat}&lon=${userLon}&limit=40`)
-            .then(res => res.json())
-            .catch(() => ({ features: [] }))
-        );
+      const queryContent = CATEGORY_QUERIES[catKey](bbox.south, bbox.west, bbox.north, bbox.east);
+      const overpassQL = `[out:json][timeout:10];(${queryContent});out center tags;`;
 
-        const responses = await Promise.all(requests);
-        const seenIds = new Set();
-        const rawPlaces = [];
+      let elements = null;
 
-        responses.forEach(data => {
-          (data.features || []).forEach(f => {
-            const props = f.properties || {};
-            const coords = f.geometry.coordinates;
-            const pLon = coords[0];
-            const pLat = coords[1];
-            const dist = calculateDistance(userLat, userLon, pLat, pLon);
+      // Server-Kette durchlaufen
+      for (const endpoint of OVERPASS_ENDPOINTS) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4500);
 
-            // Nur Ergebnisse innerhalb des gewählten Radius
-            if (dist <= radius) {
-              const id = props.osm_id || `${pLat}-${pLon}`;
-              if (!seenIds.has(id) && props.name) {
-                seenIds.add(id);
-                const type = props.osm_value || props.type || 'Ort';
-                const street = props.street ? `${props.street} ${props.housenumber || ''}`.trim() : (props.city || '');
-                const meta = getPlaceMetadata(props.name, catKey);
-
-                rawPlaces.push({
-                  id,
-                  name: props.name,
-                  address: street,
-                  category: type.replace('_', ' '),
-                  lat: pLat,
-                  lon: pLon,
-                  distance: dist,
-                  ...meta
-                });
-              }
-            }
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'data=' + encodeURIComponent(overpassQL),
+            signal: controller.signal
           });
-        });
+          clearTimeout(timeoutId);
 
-        currentPlaces = rawPlaces.sort((a, b) => a.distance - b.distance);
-        renderList();
-        updateMapMarkers();
-      } catch (err) {
-        console.error(err);
-        statusMsg.innerHTML = 'Fehler beim Laden der Orte.';
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.elements) {
+              elements = data.elements;
+              break;
+            }
+          }
+        } catch (e) {
+          console.warn(`Server ${endpoint} nicht erreichbar, wechsle...`);
+        }
       }
+
+      if (!elements) {
+        statusMsg.innerHTML = 'Konnte keine Verbindung aufbauen. Bitte kurz warten und erneut versuchen.';
+        return;
+      }
+
+      const seen = new Set();
+      const isGastro = (catKey === 'gastro' || catKey === 'shopping');
+
+      currentPlaces = elements.map(el => {
+        const lat = el.lat || (el.center && el.center.lat);
+        const lon = el.lon || (el.center && el.center.lon);
+        if (!lat || !lon) return null;
+
+        const dist = calculateDistance(userLat, userLon, lat, lon);
+        if (dist > radius) return null; // Exakter Kreis-Filter
+
+        const tags = el.tags || {};
+        const name = tags.name || (tags.ref ? `Linie / Ref: ${tags.ref}` : (tags.operator || 'Eintrag ohne Namen'));
+        
+        // Eindeutigkeit prüfen
+        const key = `${name}-${lat.toFixed(4)}-${lon.toFixed(4)}`;
+        if (seen.has(key)) return null;
+        seen.add(key);
+
+        const typeLabel = tags.amenity || tags.healthcare || tags.shop || tags.tourism || tags.highway || tags.railway || 'Ort';
+        const subdetail = tags.cuisine || tags.healthcare_speciality || tags.speciality || '';
+        const street = tags['addr:street'] ? `${tags['addr:street']} ${tags['addr:housenumber'] || ''}`.trim() : '';
+        const meta = getPlaceMetadata(name, typeLabel, isGastro);
+
+        return {
+          id: el.id,
+          name: name,
+          type: typeLabel.replace(/_/g, ' '),
+          subdetail: subdetail.replace(/;/g, ', '),
+          address: street,
+          lat: lat,
+          lon: lon,
+          distance: dist,
+          ...meta
+        };
+      }).filter(Boolean).sort((a, b) => a.distance - b.distance);
+
+      renderList();
+      updateMapMarkers();
     }
 
     function renderList() {
       if (currentPlaces.length === 0) {
-        statusMsg.innerText = 'Keine Einträge in dieser Kategorie im gewählten Umkreis gefunden. Versuche den Radius zu vergrößern.';
+        statusMsg.innerText = 'Keine Einträge in dieser Kategorie im gewählten Umkreis gefunden.';
         return;
       }
       statusMsg.innerText = '';
@@ -463,9 +396,10 @@
         card.innerHTML = `
           <div class="place-info">
             <h3>${p.name}</h3>
-            ${p.address ? `<div class="place-address">${p.address}</div>` : ''}
+            ${p.address ? `<div class="place-address">📍 ${p.address}</div>` : ''}
             <div class="place-tags">
-              <span class="tag-badge">${p.category}</span>
+              <span class="tag-badge">${p.type}</span>
+              ${p.subdetail ? `<span class="tag-badge">${p.subdetail}</span>` : ''}
               ${p.price ? `<span class="price">${p.price}</span>` : ''}
               <span class="stars">★ ${p.rating} <span style="color:var(--text-muted); font-size:0.75rem;">(${p.reviews})</span></span>
             </div>
@@ -473,7 +407,7 @@
           <div class="distance">${p.distance} m ↗</div>
         `;
         card.onclick = () => {
-          window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}`, '_blank');
+          window.open(`https://maps.google.com/?q=${p.lat},${p.lon}`, '_blank');
         };
         placesList.appendChild(card);
       });
@@ -488,7 +422,6 @@
         }).addTo(map);
         markersLayer = L.layerGroup().addTo(map);
 
-        // Klick auf Karte setzt neuen Mittelpunkt
         map.on('click', (e) => {
           userLat = e.latlng.lat;
           userLon = e.latlng.lng;
@@ -502,9 +435,8 @@
       if (!map) return;
       markersLayer.clearLayers();
 
-      // Verschiebbare Standort-Markierung
       userMarker = L.marker([userLat, userLon], { draggable: true })
-        .bindPopup('<b>Aktiver Mittelpunkt</b><br>(Ziehen um Ort zu ändern)')
+        .bindPopup('<b>Aktiver Mittelpunkt</b><br>(Verschieben um Bereich zu ändern)')
         .addTo(markersLayer);
 
       userMarker.on('dragend', (e) => {
@@ -515,15 +447,14 @@
         fetchPlaces();
       });
 
-      // POI-Marker
       currentPlaces.forEach(p => {
         const marker = L.marker([p.lat, p.lon]);
         marker.bindPopup(`
           <div style="font-size: 0.85rem;">
             <b>${p.name}</b><br>
-            <span style="color: #64748b;">${p.category} ${p.price ? '• ' + p.price : ''} • ★ ${p.rating}</span><br>
-            <small>${p.address}</small><br><br>
-            <a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none;">
+            <span style="color: #64748b;">${p.type} ${p.price ? '• ' + p.price : ''} • ★ ${p.rating}</span><br>
+            ${p.address ? `<small>${p.address}</small><br>` : ''}<br>
+            <a href="https://maps.google.com/?q=${p.lat},${p.lon}" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none;">
               🚗 Navigation (${p.distance}m)
             </a>
           </div>
@@ -532,7 +463,7 @@
       });
     }
 
-    // Event-Listener
+    // Event Listener
     btnSearchAddr.onclick = () => searchAddress(addressInput.value);
     addressInput.onkeydown = (e) => { if (e.key === 'Enter') searchAddress(addressInput.value); };
 
@@ -549,7 +480,7 @@
             fetchPlaces();
           },
           (err) => {
-            alert('GPS-Zugriff nicht verfügbar oder blockiert. Bitte Ort im Textfeld eingeben.');
+            alert('GPS nicht verfügbar oder verweigert. Bitte Ort über das Textfeld suchen.');
             fetchPlaces();
           },
           { enableHighAccuracy: true, timeout: 5000 }
@@ -583,7 +514,6 @@
     };
     customRadiusInput.onchange = fetchPlaces;
 
-    // Start beim Laden
     window.onload = () => {
       fetchPlaces();
     };
